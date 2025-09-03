@@ -1,0 +1,195 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<div class="container">
+    <!-- 搜索栏 -->
+    <form class="layui-form layui-search">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label for="name" class="layui-form-label">奖品名称:</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="name" name="name" class="layui-input" placeholder="请输入奖品名称">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="type" class="layui-form-label">奖品类型:</label>
+                <div class="layui-input-inline">
+                    <select id="type" name="type">
+                        <option value="" selected>全部类型</option>
+                        <option value="ENTITY">实体奖品</option>
+                        <option value="VIRTUAL">虚拟奖品</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-default" lay-submit lay-filter="search">查询</a>
+                <a class="layui-btn layui-btn-sm layui-btn-primary" lay-submit lay-filter="clear-search">重置</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- 表格栏 -->
+    <div class="layui-card">
+        <div class="layui-card-body wait-table-cell">
+            <table id="wait-table-list" lay-filter="wait-table-list"></table>
+            <!-- 表头工具栏 -->
+            <script type="text/html" id="toolbar">
+                <div class="layui-btn-container">
+                    <a class="layui-btn layui-btn-sm layui-btn-default" lay-event="add">
+                        <i class="layui-icon icon-add"></i>
+                        <span>新增</span>
+                    </a>
+                </div>
+            </script>
+            <!-- 图片模板 -->
+            <script type="text/html" id="table-image">
+                <div class="table-image-wrap size-50-50">
+                    <img src="{{d.img}}" alt="奖品图片" class="previewImage">
+                </div>
+            </script>
+            <!-- 行内操作栏 -->
+            <script type="text/html" id="table-operate">
+                <a class="layui-btn layui-btn-xs layui-btn-default" lay-event="edit">
+                    <i class="layui-icon icon-edit"></i>
+                </a>
+                <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">
+                    <i class="layui-icon icon-del"></i>
+                </a>
+            </script>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['table', 'form', 'layer', 'upload'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let layer = layui.layer;
+        let upload = layui.upload;
+        let $ = layui.jquery;
+
+        // 渲染表格
+        let dataTable = table.render({
+            elem: '#wait-table-list',
+            url: '{:route("lottery.prize/index")}',
+            toolbar: '#toolbar',
+            cols: [[
+                {type: 'checkbox', width: 48},
+                {field: 'id', title: 'ID', width: 80, align: 'center'},
+                {field: 'name', title: '奖品名称', minWidth: 150},
+                {field: 'img', title: '图片', width: 100, align: 'center', templet: '#table-image'},
+                {field: 'type_text', title: '类型', width: 120, align: 'center'},
+                {field: 'stock', title: '库存', width: 80, align: 'center'},
+                {field: 'sort', title: '排序', width: 80, align: 'center'},
+                {field: 'create_time', title: '创建时间', width: 170, align: 'center', style: 'white-space: nowrap;'},
+                {fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#table-operate'}
+            ]],
+            page: true,
+            limit: 15,
+            limits: [15, 30, 50, 100]
+        });
+
+        // 弹窗表单的公共逻辑
+        function initForm(layero, index, url, submitFilter) {
+            let iframeWin = window[layero.find('iframe')[0]['name']];
+            let iframeBody = layero.find('iframe').contents().find('body');
+
+            // 激活图片上传
+            iframeWin.layui.upload.render({
+                elem: iframeBody.find('#upload-image'),
+                url: '{:route("upload/permanent")}?type=picture',
+                done: function(res) {
+                    if (res.code === 0) {
+                        iframeBody.find('#img-input').val(res.data.url);
+                        iframeBody.find('#img-preview').attr('src', res.data.url).show();
+                        layer.msg('上传成功', {icon: 1});
+                    } else {
+                        layer.msg(res.msg || '上传失败', {icon: 2});
+                    }
+                }
+            });
+
+            // 监听输入框变化，同步预览
+            iframeBody.find('#img-input').on('input', function(){
+                let src = $(this).val();
+                if (src) {
+                    iframeBody.find('#img-preview').attr('src', src).show();
+                } else {
+                    iframeBody.find('#img-preview').hide();
+                }
+            });
+
+            // 监听表单提交
+            iframeWin.layui.form.on('submit(' + submitFilter + ')', function(data) {
+                $.post(url, data.field, function(res) {
+                    if (res.code === 0) {
+                        layer.msg(res.msg, {icon: 1, time: 1000}, () => {
+                            layer.close(index);
+                            dataTable.reload();
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                });
+                return false;
+            });
+            
+            // 监听取消按钮
+            iframeBody.find('#closePopupWindow').on('click', () => layer.close(index));
+        }
+
+        // 监听头工具栏事件
+        table.on('toolbar(wait-table-list)', function (obj) {
+            if (obj.event === 'add') {
+                layer.open({
+                    type: 2,
+                    title: '新增奖品',
+                    content: '{:route("lottery.prize/add")}',
+                    area: ['650px', '550px'],
+                    success: (layero, index) => initForm(layero, index, '{:route("lottery.prize/add")}', 'addForm')
+                });
+            }
+        });
+
+        // 监听行工具事件
+        table.on('tool(wait-table-list)', function (obj) {
+            let data = obj.data;
+            if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    title: '编辑奖品',
+                    content: '{:route("lottery.prize/edit")}?id=' + data.id,
+                    area: ['650px', '550px'],
+                    success: (layero, index) => initForm(layero, index, '{:route("lottery.prize/edit")}', 'editForm')
+                });
+            } else if (obj.event === 'del') {
+                layer.confirm('确定要删除 [ ' + data.name + ' ] 吗？', {icon: 3, title: '温馨提示'}, function (index) {
+                    layer.close(index);
+                    $.post('{:route("lottery.prize/del")}', {ids: [data.id]}, function(res) {
+                        if (res.code === 0) {
+                            layer.msg(res.msg, {icon: 1});
+                            obj.del();
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    });
+                });
+            }
+        });
+
+        // 搜索
+        form.on('submit(search)', function (data) {
+            dataTable.reload({ where: data.field, page: {curr: 1} });
+            return false;
+        });
+
+        // 重置
+        form.on('submit(clear-search)', function () {
+            $(".layui-search")[0].reset();
+            dataTable.reload({ where: {}, page: {curr: 1} });
+        });
+    });
+</script>
+{/block}

@@ -1,0 +1,41 @@
+{extend name="../../../app/backend/view/common/layout" /}
+
+{block name="style"}
+<style>
+    .layui-tab { margin: 0; }
+    .layui-tab-title { position: fixed; z-index: 99999; width: 100%; font-weight: bold; color: #666666; background: #ffffff; }
+    .layui-tab-content { padding: 45px 0 0; }
+    .layui-code-view { margin: 0 !important; }
+    .layui-code-dark { border: none !important; }
+</style>
+{/block}
+
+{block name="body"}
+<form class="layui-form">
+    <div class="layui-tab layui-tab-brief">
+        <ul class="layui-tab-title">
+            {foreach $keys as $k=>$v}
+                <li class="{if $k==0}layui-this{/if}">{$v}</li>
+            {/foreach}
+        </ul>
+        <div class="layui-tab-content " style="padding-top: 10px;">
+            {foreach $values as $k=>$v}
+                <div class="layui-tab-item {if $k==0}layui-show{/if}">
+                    <pre class="layui-code layui-code-view layui-code-dark code">{$v}</pre>
+                </div>
+            {/foreach}
+        </div>
+    </div>
+</form>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['code'], function () {
+        layui.code({
+            elem: '.code',
+            theme: 'dark'
+        });
+    });
+</script>
+{/block}

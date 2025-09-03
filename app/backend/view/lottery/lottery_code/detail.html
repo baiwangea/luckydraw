@@ -1,0 +1,216 @@
+{extend name="common/layout" /}
+
+{block name="title"}抽奖码详情{/block}
+
+{block name="body"}
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码ID</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">{$data.id}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid" style="font-family: monospace; font-size: 16px; font-weight: bold; color: #1E9FFF;">
+                {$data.code}
+                <button class="layui-btn layui-btn-xs layui-btn-primary" id="copy-code" data-code="{$data.code}" style="margin-left: 10px;">
+                    <i class="layui-icon layui-icon-file"></i> 复制
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">关联奖品</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">
+                {if $data.prize}
+                    <span style="color: #5FB878;">{$data.prize.name}</span>
+                    {if $data.prize.image}
+                        <img src="{$data.prize.image}" alt="" style="width: 40px; height: 40px; margin-left: 10px; vertical-align: middle; border-radius: 4px;">
+                    {/if}
+                {else}
+                    <span style="color: #999;">未关联奖品</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">使用状态</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">
+                {if $data.status == 'UNUSED'}
+                    <span class="layui-badge layui-bg-green">未使用</span>
+                {else}
+                    <span class="layui-badge layui-bg-gray">已使用</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    {if $data.status == 'USED'}
+    <div class="layui-form-item">
+        <label class="layui-form-label">使用者邮箱</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">
+                {if $data.user_email}
+                    {$data.user_email}
+                {else}
+                    <span style="color: #999;">未记录</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">使用时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">
+                {if $data.used_at}
+                    {$data.used_at}
+                {else}
+                    <span style="color: #999;">未记录</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">中奖结果</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">
+                {if $data.draw_record}
+                    {if $data.draw_record.status == 'WON'}
+                        <span style="color: #FF5722; font-weight: bold;">🎉 中奖</span>
+                        {if $data.draw_record.prize.name}
+                            - {$data.draw_record.prize.name}
+                        {/if}
+                    {elseif $data.draw_record.status == 'INVALID'}
+                        <span style="color: #FF0000; font-weight: bold;">❌ 无效</span>
+                    {else}
+                        <span style="color: #999;">未中奖</span>
+                    {/if}
+                {else}
+                    <span style="color: #999;">无抽奖记录</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">{$data.created_at}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">更新时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid">{$data.updated_at}</div>
+        </div>
+    </div>
+
+    {if $data.status == 'USED' && $data.draw_record}
+    <div class="layui-form-item">
+        <div class="layui-form-label">抽奖详情</div>
+        <div class="layui-input-block">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-table" lay-size="sm">
+                        <tbody>
+                            <tr>
+                                <td width="100">抽奖时间</td>
+                                <td>{$data.draw_record.created_at}</td>
+                            </tr>
+                            <tr>
+                                <td>抽奖结果</td>
+                                <td>
+                                    {if $data.draw_record.status == 'WON'}
+                                        <span style="color: #FF5722; font-weight: bold;">中奖</span>
+                                    {elseif $data.draw_record.status == 'INVALID'}
+                                        <span style="color: #FF0000; font-weight: bold;">无效</span>
+                                    {else}
+                                        <span style="color: #999;">未中奖</span>
+                                    {/if}
+                                </td>
+                            </tr>
+                            {if $data.draw_record.status == 'WON'}
+                            <tr>
+                                <td>中奖奖品</td>
+                                <td>{$data.draw_record.prize.name|default='未知奖品'}</td>
+                            </tr>
+                            <tr>
+                                <td>奖品价值</td>
+                                <td>¥{$data.draw_record.prize.price|default=0}</td>
+                            </tr>
+                            {/if}
+                            <tr>
+                                <td>IP地址</td>
+                                <td>{$data.draw_record.ip|default='未记录'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <div class="layui-form-item text-center">
+        <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.closeAll();">关闭</button>
+        {if $data.status == 'UNUSED'}
+        <button type="button" class="layui-btn layui-btn-danger" id="delete-code">删除抽奖码</button>
+        {/if}
+    </div>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+    layui.use(['layer'], function () {
+        const layer = layui.layer;
+
+        // 复制抽奖码
+        $('#copy-code').click(function() {
+            const code = $(this).data('code');
+            
+            // 创建临时输入框
+            const tempInput = document.createElement('input');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand('copy');
+                layer.msg('抽奖码已复制到剪贴板', {icon: 1});
+            } catch (err) {
+                layer.msg('复制失败，请手动复制', {icon: 2});
+            }
+            
+            document.body.removeChild(tempInput);
+        });
+
+        // 删除抽奖码
+        $('#delete-code').click(function() {
+            layer.confirm('确定要删除这个抽奖码吗？删除后无法恢复！', {icon: 3, title: '确认删除'}, function (index) {
+                $.post('{:route("lottery.lottery_code/del")}', {id: '{$data.id}'}, function (res) {
+                    if (res.code === 200) {
+                        layer.msg(res.msg, {icon: 1}, function () {
+                            parent.layer.closeAll();
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+    });
+</script>
+{/block}

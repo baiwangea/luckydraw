@@ -1,0 +1,150 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<div class="container">
+    <!-- 搜索栏 -->
+    <form class="layui-form layui-search">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label for="email" class="layui-form-label">用户邮箱:</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="email" name="email" class="layui-input" placeholder="请输入用户邮箱">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="code" class="layui-form-label">抽奖码:</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="code" name="code" class="layui-input" placeholder="请输入抽奖码">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="prize" class="layui-form-label">关联奖品:</label>
+                <div class="layui-input-inline">
+                    <select id="prize" name="prize">
+                        <option value="" selected>全部奖品</option>
+                        {volist name="prizes" id="vo"}
+                        <option value="{$vo.value}">{$vo.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="status" class="layui-form-label">中奖状态:</label>
+                <div class="layui-input-inline">
+                    <select id="status" name="status">
+                        <option value="" selected>全部状态</option>
+                        <option value="0">未中奖</option>
+                        <option value="1">已中奖</option>
+                        <option value="2">无效</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline layui-input-datetime">
+                <label for="datetime" class="layui-form-label">抽奖时间:</label>
+                <div class="layui-input-block">
+                    <input type="text" id="datetime" name="datetime" class="layui-input" placeholder="开始和结束时间" readonly>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-default" lay-submit lay-filter="search">查询</a>
+                <a class="layui-btn layui-btn-sm layui-btn-primary" lay-submit lay-filter="clear-search">重置</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- 表格栏 -->
+    <div class="layui-card">
+        <div class="layui-card-body wait-table-cell">
+            <table id="wait-table-list" lay-filter="wait-table-list"></table>
+            <!-- 奖品模板 -->
+            <script type="text/html" id="table-prize">
+                {{# if(d.prize_name !== '未中奖'){ }}
+                    <div style="display: flex; align-items: center;">
+                        <img src="{{d.prize_image}}" class="table-image-wrap size-30-30"/>
+                        <span style="margin-left: 8px;">{{d.prize_name}}</span>
+                    </div>
+                {{# } else { }}
+                    <span class="color-gray">-</span>
+                {{# } }}
+            </script>
+            <!-- 状态模板 -->
+            <script type="text/html" id="table-status">
+                {{# if(d.status == 1) { }}
+                    <span class="layui-badge layui-bg-orange">🎉 {{d.status_text}}</span>
+                {{# } else if(d.status == 2) { }}
+                     <span class="layui-badge layui-bg-red">{{d.status_text}}</span>
+                {{# } else { }}
+                    <span class="layui-badge layui-bg-gray">{{d.status_text}}</span>
+                {{# } }}
+            </script>
+            <!-- 行内操作栏 -->
+            <script type="text/html" id="table-operate">
+                <a class="layui-btn layui-btn-xs layui-btn-default" lay-event="detail">
+                    <i class="layui-icon icon-about"></i>详情
+                </a>
+            </script>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+layui.use(['table', 'form', 'layer', 'laydate'], function () {
+    let table = layui.table;
+    let form = layui.form;
+    let layer = layui.layer;
+    let laydate = layui.laydate;
+    let $ = layui.jquery;
+
+    // 时间选择
+    laydate.render({
+        elem: "#datetime",
+        type: "datetime",
+        range: true
+    });
+
+    // 渲染表格
+    let dataTable = table.render({
+        elem: '#wait-table-list',
+        url: '{:route("lottery.record/index")}',
+        cols: [[
+            {type: 'checkbox', width: 48},
+            {field: 'id', title: 'ID', width: 80, align: 'center'},
+            {field: 'lottery_code', title: '抽奖码', minWidth: 150, align: 'center'},
+            {field: 'prize_name', title: '抽中奖品', minWidth: 180, align: 'center', templet: '#table-prize'},
+            {field: 'status_text', title: '状态', width: 100, align: 'center', templet: '#table-status'},
+            {field: 'draw_time', title: '抽奖时间', width: 170, align: 'center', style: 'white-space: nowrap;'},
+            {fixed: 'right', title: '操作', width: 100, align: 'center', toolbar: '#table-operate'}
+        ]],
+        page: true,
+        limit: 15,
+        limits: [15, 30, 50, 100]
+    });
+
+    // 监听行工具事件
+    table.on('tool(wait-table-list)', function (obj) {
+        if (obj.event === 'detail') {
+            layer.open({
+                type: 2,
+                title: '抽奖记录详情',
+                content: '{:route("lottery.record/detail")}?id=' + obj.data.id,
+                area: ['650px', '500px']
+            });
+        }
+    });
+
+    // 搜索
+    form.on('submit(search)', function (data) {
+        dataTable.reload({ where: data.field, page: {curr: 1} });
+        return false;
+    });
+
+    // 重置
+    form.on('submit(clear-search)', function () {
+        $(".layui-search")[0].reset();
+        dataTable.reload({ where: {}, page: {curr: 1} });
+    });
+});
+</script>
+{/block}

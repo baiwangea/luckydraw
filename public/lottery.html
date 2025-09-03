@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽奖活动</title>
+    <link rel="stylesheet" href="/static/frontend/css/lottery.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="lottery-container">
+        <!-- 头部 -->
+        <header class="lottery-header">
+            <h1><i class="fas fa-gift"></i> 幸运抽奖</h1>
+            <p class="subtitle">输入您的抽奖码，赢取丰厚奖品！</p>
+        </header>
+
+        <!-- 奖品展示区 -->
+        <section class="prizes-showcase">
+            <h2><i class="fas fa-trophy"></i> 奖品展示</h2>
+            <div class="prizes-grid" id="prizesGrid">
+                <!-- 奖品将通过JavaScript动态加载 -->
+            </div>
+        </section>
+
+        <!-- 抽奖区域 -->
+        <section class="lottery-section">
+            <div class="lottery-card">
+                <h3><i class="fas fa-ticket-alt"></i> 开始抽奖</h3>
+                
+                <form id="lotteryForm" class="lottery-form">
+                    <div class="input-group">
+                        <label for="lotteryCode">抽奖码</label>
+                        <input 
+                            type="text" 
+                            id="lotteryCode" 
+                            name="code" 
+                            placeholder="请输入您的抽奖码" 
+                            maxlength="32"
+                            required
+                        >
+                        <div class="input-feedback" id="codeFeedback"></div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="userEmail">邮箱地址（可选）</label>
+                        <input 
+                            type="email" 
+                            id="userEmail" 
+                            name="user_email" 
+                            placeholder="请输入您的邮箱地址"
+                            maxlength="64"
+                        >
+                        <div class="input-feedback" id="emailFeedback"></div>
+                    </div>
+                    
+                    <button type="submit" class="lottery-btn" id="lotteryBtn">
+                        <i class="fas fa-dice"></i>
+                        <span>立即抽奖</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 结果显示区 -->
+        <section class="result-section" id="resultSection" style="display: none;">
+            <div class="result-card" id="resultCard">
+                <!-- 结果内容将通过JavaScript动态生成 -->
+            </div>
+        </section>
+
+        <!-- 最新中奖记录 -->
+        <section class="winners-section">
+            <h2><i class="fas fa-crown"></i> 最新中奖记录</h2>
+            <div class="winners-list" id="winnersList">
+                <!-- 中奖记录将通过JavaScript动态加载 -->
+            </div>
+        </section>
+
+        <!-- 抽奖规则 -->
+        <section class="rules-section">
+            <h2><i class="fas fa-info-circle"></i> 活动规则</h2>
+            <div class="rules-content" id="rulesContent">
+                <!-- 规则内容将通过JavaScript动态加载 -->
+            </div>
+        </section>
+
+        <!-- 统计信息 -->
+        <section class="stats-section">
+            <h2><i class="fas fa-chart-bar"></i> 活动统计</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- 统计信息将通过JavaScript动态加载 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- 加载提示 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>处理中...</p>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="message-toast" id="messageToast">
+        <div class="toast-content">
+            <i class="toast-icon"></i>
+            <span class="toast-text"></span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <script src="/static/frontend/js/lottery.js"></script>
+</body>
+</html>

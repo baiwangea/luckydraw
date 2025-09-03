@@ -1,0 +1,35 @@
+{extend name="common/layout" /}
+
+{block name="style"}
+<style>
+    .container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+        text-align: center;
+    }
+    .node { text-align: center; }
+    .node i { font-size: 200px; color: #999999; }
+    .node p { margin-top: 10px; font-size: 14px; color: #999999; }
+</style>
+{/block}
+
+{block name="body"}
+<div class="container">
+    <div class="node">
+        {if $errCode == 404}
+            <i class="layui-icon layui-icon-404"></i>
+        {else}
+            <i class="layui-icon layui-icon-face-surprised"></i>
+        {/if}
+        <p>{$errMsg}</p>
+    </div>
+</div>
+{/block}

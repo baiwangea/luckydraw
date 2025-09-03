@@ -1,0 +1,99 @@
+{extend name="common/layout" /}
+
+{block name="title"}批量生成抽奖码{/block}
+
+{block name="body"}
+<form class="layui-form" lay-filter="form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">关联奖品</label>
+        <div class="layui-input-block">
+            <select name="prize_id" lay-filter="prize_id" lay-search>
+                <option value="">请选择奖品</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">生成数量</label>
+        <div class="layui-input-block">
+            <input type="number" name="quantity" lay-verify="required|number" placeholder="请输入生成数量" class="layui-input" value="10">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码长度</label>
+        <div class="layui-input-block">
+            <input type="number" name="length" lay-verify="required|number" placeholder="请输入抽奖码长度" class="layui-input" value="8">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码类型</label>
+        <div class="layui-input-block">
+            <select name="type" lay-filter="type">
+                <option value="string">字母+数字</option>
+                <option value="number">纯数字</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码前缀</label>
+        <div class="layui-input-block">
+            <input type="text" name="prefix" placeholder="请输入抽奖码前缀" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码后缀</label>
+        <div class="layui-input-block">
+            <input type="text" name="suffix" placeholder="请输入抽奖码后缀" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="save">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+{/block}
+
+{block name="script"}
+<script>
+    layui.use(['form', 'layer'], function () {
+        const form = layui.form;
+        const layer = layui.layer;
+
+        // 获取奖品列表
+        $.get('{:route("lottery.prize/options")}', function (res) {
+            if (res.code === 200) {
+                let html = '<option value="">请选择奖品</option>';
+                res.data.forEach(item => {
+                    html += `<option value="${item.id}">${item.name}</option>`;
+                });
+                $('select[name="prize_id"]').html(html);
+                form.render('select');
+            } else {
+                layer.msg(res.msg, {icon: 2});
+            }
+        });
+
+        // 监听提交
+        form.on('submit(save)', function (data) {
+            $.post('{:route("lottery.lottery_code/batchGenerate")}', data.field, function (res) {
+                if (res.code === 200) {
+                    layer.msg(res.msg, {icon: 1}, function () {
+                        const index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                    });
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            });
+            return false;
+        });
+    });
+</script>
+{/block}

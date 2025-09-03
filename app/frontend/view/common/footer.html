@@ -1,0 +1,13 @@
+<div class="layout-global-footer">
+    <div class="container">
+        <p>
+            {$website.copyright??''}
+            {if $website.icp??''}
+                | <a href="https://beian.miit.gov.cn/" rel="nofollow" target="_blank">{$website.icp}</a>
+            {/if}
+            {if $website.pcp??''}
+                | <a href="https://beian.miit.gov.cn/" rel="nofollow" target="_blank">{$website.pcp}</a>
+            {/if}
+        </p>
+    </div>
+</div>

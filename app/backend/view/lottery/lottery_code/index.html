@@ -1,0 +1,200 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<div class="container">
+    <!-- 搜索栏 -->
+    <form class="layui-form layui-search">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label for="code" class="layui-form-label">抽奖码:</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="code" name="code" class="layui-input" placeholder="请输入抽奖码">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="prize" class="layui-form-label">关联奖品:</label>
+                <div class="layui-input-inline">
+                    <select id="prize" name="prize">
+                        <option value="" selected>全部奖品</option>
+                        {volist name="prizes" id="vo"}
+                        <option value="{$vo.value}">{$vo.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label for="used" class="layui-form-label">使用状态:</label>
+                <div class="layui-input-inline">
+                    <select id="used" name="used">
+                        <option value="" selected>全部状态</option>
+                        <option value="0">未使用</option>
+                        <option value="1">已使用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-default" lay-submit lay-filter="search">查询</a>
+                <a class="layui-btn layui-btn-sm layui-btn-primary" lay-submit lay-filter="clear-search">重置</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- 表格栏 -->
+    <div class="layui-card">
+        <div class="layui-card-body wait-table-cell">
+            <table id="wait-table-list" lay-filter="wait-table-list"></table>
+            <!-- 表头工具栏 -->
+            <script type="text/html" id="toolbar">
+                <div class="layui-btn-container">
+                    <a class="layui-btn layui-btn-sm layui-btn-default" lay-event="add">
+                        <i class="layui-icon icon-add"></i>
+                        <span>新增</span>
+                    </a>
+                    <a class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del">
+                        <i class="layui-icon icon-del"></i>
+                        <span>删除</span>
+                    </a>
+                </div>
+            </script>
+            <!-- 状态模板 -->
+            <script type="text/html" id="table-status">
+                {{# if(d.is_used === 0) { }}
+                    <span class="layui-badge layui-bg-green">{{d.is_used_text}}</span>
+                {{# } else { }}
+                    <span class="layui-badge layui-bg-gray">{{d.is_used_text}}</span>
+                {{# } }}
+            </script>
+            <!-- 行内操作栏 -->
+            <script type="text/html" id="table-operate">
+                <a class="layui-btn layui-btn-xs layui-btn-default" lay-event="edit">
+                    <i class="layui-icon icon-edit"></i>
+                </a>
+                <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">
+                    <i class="layui-icon icon-del"></i>
+                </a>
+            </script>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+layui.use(['table', 'form', 'layer'], function () {
+    let table = layui.table;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = layui.jquery;
+
+    // 渲染表格
+    let dataTable = table.render({
+        elem: '#wait-table-list',
+        url: '{:route("lottery.code/index")}',
+        toolbar: '#toolbar',
+        cols: [[
+            {type: 'checkbox', width: 48},
+            {field: 'id', title: 'ID', width: 80, align: 'center'},
+            {field: 'code', title: '抽奖码', minWidth: 180},
+            {field: 'prize_name', title: '关联奖品', minWidth: 150, align: 'center'},
+            {field: 'is_used_text', title: '状态', width: 100, align: 'center', templet: '#table-status'},
+            {field: 'used_time', title: '使用时间', width: 170, align: 'center', style: 'white-space: nowrap;'},
+            {field: 'create_time', title: '创建时间', width: 170, align: 'center', style: 'white-space: nowrap;'},
+            {fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#table-operate'}
+        ]],
+        page: true,
+        limit: 15,
+        limits: [15, 30, 50, 100]
+    });
+
+    // 弹窗表单的公共逻辑
+    function initForm(layero, index, url, submitFilter) {
+        let iframeWin = window[layero.find('iframe')[0]['name']];
+        iframeWin.layui.form.on('submit(' + submitFilter + ')', function(data) {
+            $.post(url, data.field, function(res) {
+                if (res.code === 0) {
+                    layer.msg(res.msg, {icon: 1, time: 1000}, () => {
+                        layer.close(index);
+                        dataTable.reload();
+                    });
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            });
+            return false;
+        });
+        iframeWin.layui.$('#closePopupWindow').on('click', () => layer.close(index));
+    }
+
+    // 监听头工具栏事件
+    table.on('toolbar(wait-table-list)', function (obj) {
+        let checkStatus = table.checkStatus(obj.config.id);
+        switch (obj.event) {
+            case 'add':
+                layer.open({
+                    type: 2,
+                    title: '新增抽奖码',
+                    content: '{:route("lottery.code/add")}',
+                    area: ['650px', '420px'],
+                    success: (layero, index) => initForm(layero, index, '{:route("lottery.code/add")}', 'addForm')
+                });
+                break;
+            case 'del':
+                let data = checkStatus.data;
+                if (data.length === 0) {
+                    return layer.msg('请选择需要删除的抽奖码', {icon: 2});
+                }
+                let ids = data.map(item => item.id);
+                layer.confirm('确定要删除选中的 ' + ids.length + ' 个抽奖码吗？<br><span style="color:red;">注意：只能删除未使用的抽奖码！</span>', {icon: 3, title: '温馨提示'}, function(){
+                    $.post('{:route("lottery.code/del")}', {ids: ids}, function(res) {
+                        if (res.code === 0) {
+                            layer.msg(res.msg, {icon: 1});
+                            dataTable.reload();
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    });
+                });
+                break;
+        }
+    });
+
+    // 监听行工具事件
+    table.on('tool(wait-table-list)', function (obj) {
+        let data = obj.data;
+        if (obj.event === 'edit') {
+            layer.open({
+                type: 2,
+                title: '编辑抽奖码',
+                content: '{:route("lottery.code/edit")}?id=' + data.id,
+                area: ['650px', '350px'],
+                success: (layero, index) => initForm(layero, index, '{:route("lottery.code/edit")}', 'editForm')
+            });
+        } else if (obj.event === 'del') {
+            layer.confirm('确定要删除 [ ' + data.code + ' ] 吗？<br><span style="color:red;">注意：只能删除未使用的抽奖码！</span>', {icon: 3, title: '温馨提示'}, function (index) {
+                layer.close(index);
+                $.post('{:route("lottery.code/del")}', {ids: [data.id]}, function(res) {
+                    if (res.code === 0) {
+                        layer.msg(res.msg, {icon: 1});
+                        obj.del();
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                });
+            });
+        }
+    });
+
+    // 搜索
+    form.on('submit(search)', function (data) {
+        dataTable.reload({ where: data.field, page: {curr: 1} });
+        return false;
+    });
+
+    // 重置
+    form.on('submit(clear-search)', function () {
+        $(".layui-search")[0].reset();
+        dataTable.reload({ where: {}, page: {curr: 1} });
+    });
+});
+</script>
+{/block}

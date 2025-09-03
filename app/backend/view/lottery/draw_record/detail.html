@@ -1,0 +1,51 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<div class="layui-form" lay-filter="form" style="padding: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">记录ID</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{$detail.id}</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖码</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{$detail.lottery_code}</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖状态</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">
+                {if $detail.status == 1}
+                    <span class="layui-badge layui-bg-orange">🎉 {$detail.status_text}</span>
+                {elseif $detail.status == 2}
+                     <span class="layui-badge layui-bg-red">{$detail.status_text}</span>
+                {else}
+                    <span class="layui-badge layui-bg-gray">{$detail.status_text}</span>
+                {/if}
+            </div>
+        </div>
+    </div>
+    {if $detail.prize_name != '未中奖'}
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽中奖品</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">
+                <div style="display: flex; align-items: center;">
+                    <img src="{$detail.prize_image}" style="width: 40px; height: 40px; border-radius: 4px;"/>
+                    <span style="margin-left: 10px;">{$detail.prize_name}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
+    <div class="layui-form-item">
+        <label class="layui-form-label">抽奖时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{$detail.draw_time}</div>
+        </div>
+    </div>
+</div>
+{/block}

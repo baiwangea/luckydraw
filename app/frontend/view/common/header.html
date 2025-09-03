@@ -1,0 +1,45 @@
+<div class="layout-global-header">
+    <div class="navigation">
+        <div class="container">
+            <a class="logo"><img src="{$pc.logo??''}" alt="logo"></a>
+            <ul class="nav">
+                {volist name="navigation" id="vo"}
+                    {if !$vo.children}
+                        <li class="{:active_url($vo.url)}">
+                            <a href="{$vo.url}" target="{$vo.target}">{$vo.name}</a>
+                        </li>
+                    {else}
+                        <li class="children {:active_url($vo.url)}">
+                            <a href="javascript:">{$vo.name}</a>
+                            <dl>
+                                {volist name="$vo.children" id="subItem"}
+                                    <dd><a href="{$subItem.url}" target="{$subItem.target}">{$subItem.name}</a></dd>
+                                {/volist}
+                            </dl>
+                        </li>
+                    {/if}
+                {/volist}
+            </ul>
+            <ul class="layui-nav">
+                {if !$Request.session.userId}
+                    <li class="sign-in">
+                        <a href="javascript:" id="js-enroll-btn">登录</a> /
+                        <a href="javascript:" id="js-signup-btn">注册</a>
+                    </li>
+                {else}
+                    <li class="layui-nav-item">
+                        <a class="layui-nav-avatar">
+                            <cite>{$userInfo.nickname??'-'}</cite>
+                            <img src="{$userInfo.avatar??'__COMMON__/images/avatar.png'}" alt="avatar">
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="{:route('user/index')}">个人中心</a></dd>
+                            <dd><a href="{:route('user/collect')}">我的收藏</a></dd>
+                            <dd><a href="{:route('login/logout')}">退出登录</a></dd>
+                        </dl>
+                    </li>
+                {/if}
+            </ul>
+        </div>
+    </div>
+</div>

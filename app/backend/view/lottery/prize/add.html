@@ -1,0 +1,50 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<form class="layui-form">
+    <div class="wait-body-content">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品名称:</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入奖品名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品图片:</label>
+            <div class="layui-input-block">
+                <input type="text" id="img-input" name="img" class="layui-input layui-input-inline-sm" placeholder="请上传图片或手动输入" required lay-verify="required">
+                <button type="button" class="layui-btn layui-btn-primary layui-input-inline-sm" id="upload-image">上传图片</button>
+                <div class="layui-form-mid">
+                    <img id="img-preview" src="" class="table-image-wrap size-50-50" style="display: none;">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品类型:</label>
+            <div class="layui-input-block">
+                <select name="type" lay-verify="required">
+                    <option value=""></option>
+                    <option value="ENTITY">实体奖品</option>
+                    <option value="VIRTUAL">虚拟奖品</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖品库存:</label>
+            <div class="layui-input-block">
+                <input type="number" name="stock" value="0" lay-verify="number" placeholder="请输入库存数量" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序:</label>
+            <div class="layui-input-block">
+                <input type="number" name="sort" value="0" lay-verify="number" placeholder="数字越小越靠前" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="wait-body-footer">
+        <a class="layui-layer-btn0" lay-submit lay-filter="addForm">确定</a>
+        <a class="layui-layer-btn1" id="closePopupWindow">取消</a>
+    </div>
+</form>
+{/block}

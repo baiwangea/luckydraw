@@ -1,0 +1,149 @@
+{extend name="common/layout" /}
+
+{block name="style"}
+<style>
+    .wait-preview .layui-card { border-radius: 5px; box-shadow: 0 0 20px rgba(0, 0, 0, .08); }
+    .wait-preview .subject { position: relative; padding: 20px; width: 100%; box-sizing: border-box; }
+    .wait-preview .subject .icons { display: inline-block; vertical-align: middle; }
+    .wait-preview .subject .icons img { width: 60px; }
+    .wait-preview .subject .textarea { display: inline-block; vertical-align: middle; padding-left: 20px; }
+    .wait-preview .subject .stat-text { padding-bottom: 5px; font-size: 24px; color: #455a64; }
+    .wait-preview .subject .stat-heading { color: #99abb4; }
+    #overview-chart { width: 100%; height: 332px; }
+
+    @media screen and (max-width: 768px) {
+        .wait-preview .subject .icons img { width: 50px; }
+        .wait-preview .subject .stat-text { font-size: 22px; }
+        .wait-preview .subject .textarea { padding-left: 15px; }
+    }
+</style>
+{/block}
+
+{block name="body"}
+<div class="container">
+    <div class="layui-row layui-col-space15 wait-preview">
+        <!-- 今日抽奖次数 -->
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card">
+                <div class="subject">
+                    <div class="icons"><img src="__BACKEND__/images/console/home-01.png" alt="none"></div>
+                    <div class="textarea">
+                        <div class="stat-text">{$detail.lottery.today_draw_count|default=0}</div>
+                        <div class="stat-heading">今日抽奖次数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 今日中奖次数 -->
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card">
+                <div class="subject">
+                    <div class="icons">
+                        <img src="__BACKEND__/images/console/home-02.png" alt="none">
+                    </div>
+                    <div class="textarea">
+                        <div class="stat-text">{$detail.lottery.today_win_count|default=0}</div>
+                        <div class="stat-heading">今日中奖次数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 奖品总数 -->
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card ">
+                <div class="subject">
+                    <div class="icons">
+                        <img src="__BACKEND__/images/console/home-03.png" alt="none">
+                    </div>
+                    <div class="textarea">
+                        <div class="stat-text">{$detail.lottery.prize_count|default=0}</div>
+                        <div class="stat-heading">奖品总数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 参与用户数 -->
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card">
+                <div class="subject">
+                    <div class="icons">
+                        <img src="__BACKEND__/images/console/home-04.png" alt="none">
+                    </div>
+                    <div class="textarea">
+                        <div class="stat-text">{$detail.lottery.user_count|default=0}</div>
+                        <div class="stat-heading">参与用户数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">最近7日抽奖趋势</div>
+                <div class="layui-card-body">
+                    <div id="overview-chart"><i class="layui-icon layui-icon-loading1"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['echarts', 'jquery', 'layer'], function () {
+        let $ = layui.jquery;
+        let echarts = layui.echarts;
+        let layer = layui.layer;
+
+        let chartDom = document.getElementById('overview-chart');
+        let myChart = echarts.init(chartDom, layui.echartsTheme);
+
+        $.ajax({
+            url: '{:url("index/statistics")}',
+            type: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                if (res.code === 0) {
+                    let option = {
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['抽奖次数', '中奖次数'] },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: res.data.dates
+                        },
+                        yAxis: { type: 'value' },
+                        series: [
+                            {
+                                name: '抽奖次数',
+                                type: 'line',
+                                smooth: true,
+                                data: res.data.draws
+                            },
+                            {
+                                name: '中奖次数',
+                                type: 'line',
+                                smooth: true,
+                                data: res.data.wins
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                } else {
+                    layer.msg(res.msg || '加载图表数据失败', {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg('请求图表数据接口失败', {icon: 2});
+            }
+        });
+
+        $(window).on('resize', function() {
+            myChart.resize();
+        });
+    });
+</script>
+{/block}

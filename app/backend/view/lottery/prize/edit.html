@@ -1,0 +1,51 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<form class="layui-form">
+    <div class="wait-body-content">
+        <input type="hidden" name="id" value="{$detail.id}">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品名称:</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" value="{$detail.name}" required lay-verify="required" placeholder="请输入奖品名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品图片:</label>
+            <div class="layui-input-block">
+                <input type="text" id="img-input" name="img" value="{$detail.img}" class="layui-input layui-input-inline-sm" placeholder="请上传图片或手动输入" required lay-verify="required">
+                <button type="button" class="layui-btn layui-btn-primary layui-input-inline-sm" id="upload-image">上传图片</button>
+                <div class="layui-form-mid">
+                    <img id="img-preview" src="{$detail.img}" class="table-image-wrap size-50-50" {if !$detail.img}style="display: none;"{/if}>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>奖品类型:</label>
+            <div class="layui-input-block">
+                <select name="type" lay-verify="required">
+                    <option value=""></option>
+                    <option value="ENTITY" {if $detail.type == 'ENTITY'}selected{/if}>实体奖品</option>
+                    <option value="VIRTUAL" {if $detail.type == 'VIRTUAL'}selected{/if}>虚拟奖品</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖品库存:</label>
+            <div class="layui-input-block">
+                <input type="number" name="stock" value="{$detail.stock}" lay-verify="number" placeholder="请输入库存数量" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序:</label>
+            <div class="layui-input-block">
+                <input type="number" name="sort" value="{$detail.sort}" lay-verify="number" placeholder="数字越小越靠前" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="wait-body-footer">
+        <button class="layui-btn" lay-submit lay-filter="editForm">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary" id="closePopupWindow">取消</button>
+    </div>
+</form>
+{/block}

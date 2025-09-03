@@ -1,0 +1,110 @@
+{extend name="common/layoutBase" /}
+
+{block name="body"}
+<!-- 主体 -->
+<div class="layout-global-main">
+    <div class="container">
+        <div class="main-layout-section">
+            <div class="index-modular-detail">
+                <div class="layui-card">
+                    <div class="layui-card-body">
+                        <div class="header">
+                            <h1>{$detail.title}</h1>
+                            <div class="meta">
+                                <span>{$detail.datetime}</span>
+                                <span>{$detail.browse} 阅读量</span>
+                            </div>
+                        </div>
+                        <div class="main">{$detail.content|raw}</div>
+                        <div class="prefer">
+                            {if $detail.collect}
+                                <a class="btn active" lay-event="collect" lay-tips="取消收藏"><i class="layui-icon layui-icon-star-fill"></i></a>
+                            {else}
+                                <a class="btn" lay-event="collect" lay-tips="点击收藏"><i class="layui-icon layui-icon-star"></i></a>
+                            {/if}
+                        </div>
+                        <div class="pages">
+                            <div class="line">
+                                <span>上一篇：</span>
+                                {if $detail.prev}
+                                    <a href="{:route('article/detail', ['id'=>$detail.prev.id])}">{$detail.prev.title}</a>
+                                {else}
+                                    暂无数据
+                                {/if}
+                            </div>
+                            <div class="line">
+                                <span>下一篇：</span>
+                                {if $detail.next}
+                                    <a href="{:route('article/detail', ['id'=>$detail.next.id])}">{$detail.next.title}</a>
+                                {else}
+                                    暂无数据
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main-layout-aside">
+            <div class="index-modular-emerge">
+                <div class="layui-card">
+                    <div class="layui-card-header">最近更新</div>
+                    <div class="layui-card-body">
+                        <ul>
+                            {volist name="lately" id="vo"}
+                            <li><a href="{:route('article/detail', ['id'=>$vo.id])}"><span>[{$vo.category}] · </span>{$vo.title}</a></li>
+                            {/volist}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="index-modular-ranking">
+                <div class="layui-card">
+                    <div class="layui-card-header">排名榜单</div>
+                    <div class="layui-card-body">
+                        <ul>
+                            {volist name="ranking" id="vo" key="k"}
+                                <li><span>0{$k}</span><a href="{:route('article/detail', ['id'=>$vo.id])}">{$vo.title}</a></li>
+                            {/volist}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="index-modular-adv">
+                <img src="__FRONTEND__/images/ad.png" alt="adv">
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(function () {
+        let $ = layui.$;
+
+        waitUtil.event({
+            collect: function () {
+                let that = $(this)
+                waitUtil.ajax({
+                    url: "{:route('article/collect')}",
+                    type: 'POST',
+                    data: {id: '{$detail.id}'}
+                }).then((res) => {
+                    if (res.code === 0) {
+                        if (that.hasClass('active')) {
+                            that.removeClass('active');
+                            that.attr('lay-tips', '点击收藏');
+                            that.html('<i class="layui-icon layui-icon-star"></i>');
+                        } else {
+                            that.addClass('active');
+                            that.attr('lay-tips', '取消收藏');
+                            that.html('<i class="layui-icon layui-icon-star-fill"></i>');
+                        }
+                    }
+                });
+            }
+        })
+    });
+</script>
+{/block}

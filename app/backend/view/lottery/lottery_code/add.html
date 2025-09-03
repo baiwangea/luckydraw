@@ -1,0 +1,35 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<form class="layui-form">
+    <div class="wait-body-content">
+        <div class="layui-form-item">
+            <label class="layui-form-label">关联奖品:</label>
+            <div class="layui-input-block">
+                <select name="prize_id" lay-filter="prize_id" lay-search>
+                    <option value="0">无关联 (随机奖品)</option>
+                    {volist name="prizes" id="prize"}
+                    <option value="{$prize.value}">{$prize.name}</option>
+                    {/volist}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="asterisk">*</span>生成数量:</label>
+            <div class="layui-input-block">
+                <input type="number" name="quantity" lay-verify="required|number" placeholder="单次最多生成10000个" class="layui-input" value="100">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">自定义前缀:</label>
+            <div class="layui-input-block">
+                <input type="text" name="prefix" placeholder="例如: SN" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="wait-body-footer">
+        <button class="layui-btn" lay-submit lay-filter="addForm">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary" id="closePopupWindow">取消</button>
+    </div>
+</form>
+{/block}
