@@ -1,0 +1,8 @@
+*.log
+.env
+.htaccess
+.install.lock
+/.idea
+/.vscode
+/public/locals/
+/public/nginx.htaccess
