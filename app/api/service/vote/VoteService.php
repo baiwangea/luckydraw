@@ -39,19 +39,27 @@ class VoteService extends Service
      */
     public static function vote(array $post): void
     {
+        $now = time();
+        $startDate = strtotime('2025-09-20 00:00:00');
+        $endDate = strtotime('2026-01-01 23:59:59');
+
+        if ($now < $startDate || $now > $endDate) {
+            throw new OperateException('Voting period: September 20, 2025, to January 1, 2026');
+        }
+
         $vid = intval($post['id'] ?? 0);
         if (!$vid) {
-            throw new OperateException('参数错误');
+            throw new OperateException('Invalid parameter');
         }
 
         // 预先检查，减少不必要的事务开启
         $preCheckCandidate = Vote::find($vid);
         if (!$preCheckCandidate) {
-            throw new OperateException('候选人不存在');
+            throw new OperateException('Candidate does not exist');
         }
 
         if ($preCheckCandidate->status != 1) {
-            throw new OperateException('该候选人未参与活动');
+            throw new OperateException('This candidate is not participating in the event');
         }
 
         /** @var Request $request */
@@ -72,11 +80,11 @@ class VoteService extends Service
         }
 
         if (!empty($orConditions)) {
-            $hasVoted = VoteRecord::where('vid', $vid)
-                ->where($orConditions, 'or')
+            $hasVoted = VoteRecord::where($orConditions, 'or')
+                ->whereTime('voted_at', 'today')
                 ->find();
             if ($hasVoted) {
-                throw new OperateException('您已经投过票了');
+                throw new OperateException('You can only vote once a day');
             }
         }
 
@@ -84,14 +92,14 @@ class VoteService extends Service
         try {
             $candidateToUpdate = Vote::where('id', $vid)->lock(true)->find();
             if (!$candidateToUpdate) {
-                 throw new OperateException('候选人不存在或已被删除');
+                 throw new OperateException('Candidate does not exist or has been deleted');
             }
 
             $candidateToUpdate->ballot += 1;
             
             // 增加严格的保存结果检查
             if ($candidateToUpdate->save() === false) {
-                throw new \Exception('更新票数失败，save()方法返回false');
+                throw new \Exception('Failed to update votes, save() method returned false');
             }
 
             VoteRecord::create([
@@ -108,7 +116,7 @@ class VoteService extends Service
         } catch (\Exception $e) {
             Db::rollback();
             // 将更详细的数据库错误信息暴露出来，便于调试
-            throw new OperateException('投票失败: ' . $e->getMessage());
+            throw new OperateException('Vote failed: ' . $e->getMessage());
         }
     }
 
