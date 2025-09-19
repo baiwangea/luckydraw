@@ -12,6 +12,7 @@ return [
             'key'  => 'api',
             'groups' => [
                 ['title' => '抽奖', 'name' => 'lottery'],
+                ['title' => '投票', 'name' => 'vote'],
             ]
         ]
     ],

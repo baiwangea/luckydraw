@@ -1,0 +1,130 @@
+{extend name="common/layout" /}
+
+{block name="body"}
+<div class="container">
+    <!-- 搜索栏 -->
+    <form class="layui-form layui-search">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label for="username" class="layui-form-label">用户名:</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="username" name="username" class="layui-input" placeholder="请输入用户名">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-sm layui-btn-default" lay-submit lay-filter="search">查询</a>
+                <a class="layui-btn layui-btn-sm layui-btn-primary" lay-submit lay-filter="clear-search">重置</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- 表格栏 -->
+    <div class="layui-card">
+        <div class="layui-card-body wait-table-cell">
+            <table id="wait-table-list" lay-filter="wait-table-list"></table>
+            
+            <!-- 图片模板 -->
+            <script type="text/html" id="table-image">
+                <div class="table-image-wrap size-50-50">
+                    {{# if(d.photo){ }}
+                    <img src="{{d.photo}}" alt="图片" class="previewImage">
+                    {{# } else { }}
+                    <span>无图</span>
+                    {{# } }}
+                </div>
+            </script>
+
+            <!-- 状态模板 -->
+            <script type="text/html" id="table-status">
+                {{# if(d.status == 1){ }}
+                <span class="layui-badge layui-bg-green">启用</span>
+                {{# } else { }}
+                <span class="layui-badge layui-bg-gray">禁用</span>
+                {{# } }}
+            </script>
+
+            <!-- 行内操作栏 -->
+            <script type="text/html" id="table-operate">
+                <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="add_ballot">
+                    <i class="layui-icon icon-add-circle"></i> 上票
+                </a>
+            </script>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['table', 'form', 'layer'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let layer = layui.layer;
+        let $ = layui.jquery;
+
+        // 渲染表格
+        let dataTable = table.render({
+            elem: '#wait-table-list',
+            url: '{:route("vote.vote/index")}',
+            cols: [[
+                {field: 'id', title: 'ID', width: 80, align: 'center'},
+                {field: 'username', title: '用户名', minWidth: 150},
+                {field: 'photo', title: '图片', width: 100, align: 'center', templet: '#table-image'},
+                {field: 'ballot', title: '当前票数', width: 120, align: 'center', sort: true},
+                {field: 'status', title: '状态', width: 100, align: 'center', templet: '#table-status'},
+                {field: 'create_time', title: '创建时间', width: 170, align: 'center'},
+                {fixed: 'right', title: '操作', width: 120, align: 'center', toolbar: '#table-operate'}
+            ]],
+            page: true,
+            limit: 15,
+            limits: [15, 30, 50, 100]
+        });
+
+        // 监听行工具事件
+        table.on('tool(wait-table-list)', function (obj) {
+            let data = obj.data;
+            if (obj.event === 'add_ballot') {
+                layer.prompt({
+                    formType: 0,
+                    value: '',
+                    title: '为 [' + data.username + '] 上票，请输入增加的票数'
+                }, function(value, index, elem){
+                    if (!/^[1-9]\d*$/.test(value)) {
+                        layer.msg('请输入一个正整数');
+                        return;
+                    }
+
+                    layer.close(index);
+                    let loading = layer.load(2);
+                    $.post('{:route("vote.vote/addBallot")}', {
+                        id: data.id,
+                        num: value
+                    }, function(res) {
+                        layer.close(loading);
+                        if (res.code === 0) {
+                            layer.msg(res.msg, {icon: 1, time: 1000}, function(){
+                                dataTable.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    });
+                });
+            }
+        });
+
+        // 搜索
+        form.on('submit(search)', function (data) {
+            dataTable.reload({ where: data.field, page: {curr: 1} });
+            return false;
+        });
+
+        // 重置
+        form.on('submit(clear-search)', function () {
+            $(".layui-search")[0].reset();
+            dataTable.reload({ where: {}, page: {curr: 1} });
+            return false;
+        });
+    });
+</script>
+{/block}
