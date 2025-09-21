@@ -1,13 +1,13 @@
 <?php
 // +----------------------------------------------------------------------
-// | WaitAdmin快速开发后台管理系统
+// | WaitAdmin Rapid Development Background Management System
 // +----------------------------------------------------------------------
-// | 欢迎阅读学习程序代码,建议反馈是我们前进的动力
-// | 程序完全开源可支持商用,允许去除界面版权信息
+// | Welcome to read and learn the program code. Your feedback is our driving force.
+// | The program is completely open source and supports commercial use, allowing the removal of interface copyright information.
 // | gitee:   https://gitee.com/wafts/waitadmin-php
 // | github:  https://github.com/topwait/waitadmin-php
-// | 官方网站: https://www.waitadmin.cn
-// | WaitAdmin团队版权所有并拥有最终解释权
+// | Official Website: https://www.waitadmin.cn
+// | Copyright by WaitAdmin team, all rights reserved.
 // +----------------------------------------------------------------------
 // | Author: WaitAdmin Team <2474369941@qq.com>
 // +----------------------------------------------------------------------
@@ -25,12 +25,12 @@ use app\common\utils\UrlUtils;
 use think\facade\Db;
 
 /**
- * 抽奖服务类
+ * Lottery Service Class
  */
 class LotteryService extends Service
 {
     /**
-     * 获取奖品列表
+     * Get Prize List
      *
      * @return array
      * @throws \think\db\exception\DbException
@@ -42,7 +42,7 @@ class LotteryService extends Service
     }
 
     /**
-     * 执行抽奖
+     * Execute Draw
      *
      * @param array $post
      * @return array
@@ -56,41 +56,41 @@ class LotteryService extends Service
         $code = trim($post['code'] ?? '');
 
         if (empty($code)) {
-            throw new OperateException('抽奖码不能为空');
+            throw new OperateException('Lottery code cannot be empty');
         }
 
-        // 1. 验证抽奖码
+        // 1. Verify lottery code
         $lotteryCode = LotteryCodes::where('code', $code)->find();
         if (!$lotteryCode) {
-            throw new OperateException('抽奖码无效');
+            throw new OperateException('Invalid lottery code');
         }
 
         if ($lotteryCode->is_used) {
-            throw new OperateException('该抽奖码已被使用');
+            throw new OperateException('This lottery code has been used');
         }
 
-        // 2. 获取奖品信息
+        // 2. Get prize information
         $prize = Prizes::find($lotteryCode->prize_id);
         if (!$prize || $prize->is_delete) {
-            $prize = ['id' => 0, 'name' => '谢谢参与', 'img' => ''];
+            $prize = ['id' => 0, 'name' => 'Thank you for participating', 'img' => ''];
         }
 
         Db::startTrans();
         try {
-            // 3. 扣减库存
+            // 3. Deduct stock
             if ($prize['id'] > 0 && $prize->stock >= 0) {
                 if ($prize->stock < 1) {
-                    throw new OperateException('抱歉，该奖品已派发完毕');
+                    throw new OperateException('Sorry, this prize has been fully distributed');
                 }
                 $prize->dec('stock');
             }
 
-            // 4. 标记抽奖码为已使用
+            // 4. Mark the lottery code as used
             $lotteryCode->is_used = 1;
             $lotteryCode->used_time = time();
             $lotteryCode->save();
 
-            // 5. 创建抽奖记录
+            // 5. Create a lottery record
             DrawRecords::create([
                 'code_id'    => $lotteryCode->id,
                 'prize_id'   => $prize['id'] > 0 ? $prize['id'] : null,
@@ -101,7 +101,7 @@ class LotteryService extends Service
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
-            throw new OperateException('抽奖失败，请稍后重试: ' . $e->getMessage());
+            throw new OperateException('Lottery failed, please try again later: ' . $e->getMessage());
         }
 
         return [
@@ -112,7 +112,7 @@ class LotteryService extends Service
     }
 
     /**
-     * 根据抽奖码获取抽奖记录
+     * Get lottery record by lottery code
      *
      * @param string $code
      * @return array
@@ -123,24 +123,24 @@ class LotteryService extends Service
      */
     public static function getRecordByCode(string $code): array
     {
-        // 1. 查找抽奖码
+        // 1. Find the lottery code
         $lotteryCode = LotteryCodes::where('code', $code)->find();
         if (!$lotteryCode) {
-            throw new OperateException('抽奖码无效');
+            throw new OperateException('Invalid lottery code');
         }
 
         if (!$lotteryCode->is_used) {
-            throw new OperateException('该抽奖码尚未使用');
+            throw new OperateException('This lottery code has not been used yet');
         }
 
-        // 2. 查找抽奖记录
+        // 2. Find the lottery record
         $drawRecord = DrawRecords::where('code_id', $lotteryCode->id)->find();
         if (!$drawRecord) {
-            // 正常情况下，已使用的code一定有记录，这里是防御性编程
-            throw new OperateException('未找到对应的抽奖记录');
+            // Under normal circumstances, a used code must have a record. This is defensive programming.
+            throw new OperateException('No corresponding lottery record found');
         }
 
-        // 3. 获取奖品信息
+        // 3. Get prize information
         $prizeName = 'Thank You';
         if ($drawRecord->prize_id) {
             $prize = Prizes::find($drawRecord->prize_id);

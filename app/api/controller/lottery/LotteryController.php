@@ -80,7 +80,7 @@ class LotteryController extends Api
         try {
             $code = $this->request->get('code', '');
             if (empty($code)) {
-                throw new OperateException('抽奖码不能为空');
+                throw new OperateException('The lottery code cannot be empty');
             }
             $result = LotteryService::getRecordByCode($code);
             return AjaxUtils::success($result);
